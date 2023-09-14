@@ -1,11 +1,13 @@
 require('dotenv').config();
-const http = require("http");
-const fs = require("fs");
-const axios = require('axios'); // Use 'axios' for HTTP requests
+const express = require("express");
+const axios = require('axios');
+const fs = require('fs');
 
-const homeFile = fs.readFileSync("home.html", "utf-8");
-require('dotenv').config();
+const app = express();
+const port = process.env.PORT || 8000; // Use the provided PORT or default to 8000
+
 const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+const homeFile = fs.readFileSync("home.html", "utf-8");
 
 const replaceVal = (tempVal, orgVal) => {
   let temperature = tempVal.replace("{%tempval%}", orgVal.main.temp);
@@ -18,25 +20,23 @@ const replaceVal = (tempVal, orgVal) => {
   return temperature;
 };
 
-const server = http.createServer((req, res) => {
-  if (req.url == "/") {
-    axios.get(`http://api.openweathermap.org/data/2.5/weather?q=Rajasthan&units=metric&appid=${apiKey}`)
-      .then(response => {
-        const objdata = response.data;
-        const arrData = [objdata];
-        const realTimeData = arrData.map((val) => replaceVal(homeFile, val)).join("");
-        res.write(realTimeData);
-        res.end();
-      })
-      .catch(error => {
-        console.error("Error fetching weather data:", error);
-        res.end("Error fetching weather data");
-      });
-  } else {
-    res.end("File not found");
-  }
+app.get("/", (req, res) => {
+  axios.get(`http://api.openweathermap.org/data/2.5/weather?q=Rajasthan&units=metric&appid=${apiKey}`)
+    .then(response => {
+      const objdata = response.data;
+      const arrData = [objdata];
+      const realTimeData = arrData.map((val) => replaceVal(homeFile, val)).join("");
+      res.send(realTimeData);
+    })
+    .catch(error => {
+      console.error("Error fetching weather data:", error);
+      res.status(500).send("Error fetching weather data");
+    });
 });
 
-server.listen(8000, "127.0.0.1", () => {
-  console.log("Server is listening on port 8000");
+// Serve static files (e.g., home.html) from a public directory
+app.use(express.static('public'));
+
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
 });
