@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 8000; // Use the provided PORT or default to 8000
 
 const apiKey = process.env.OPENWEATHERMAP_API_KEY;
-const homeFile = fs.readFileSync("home.html", "utf-8");
+const homeFile = fs.readFileSync("public/home.html", "utf-8");
 
 const replaceVal = (tempVal, orgVal) => {
   let temperature = tempVal.replace("{%tempval%}", orgVal.main.temp);
@@ -26,6 +26,9 @@ app.get("/", (req, res) => {
       const objdata = response.data;
       const arrData = [objdata];
       const realTimeData = arrData.map((val) => replaceVal(homeFile, val)).join("");
+      
+      // Set the Content-Type header to indicate HTML
+      res.header("Content-Type", "text/html");
       res.send(realTimeData);
     })
     .catch(error => {
