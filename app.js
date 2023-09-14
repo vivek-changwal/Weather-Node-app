@@ -26,9 +26,6 @@ app.get("/", (req, res) => {
       const objdata = response.data;
       const arrData = [objdata];
       const realTimeData = arrData.map((val) => replaceVal(homeFile, val)).join("");
-      
-      // Set the Content-Type header to indicate HTML
-      res.header("Content-Type", "text/html");
       res.send(realTimeData);
     })
     .catch(error => {
